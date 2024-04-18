@@ -26,10 +26,22 @@
 
 Дополнительно потребуется создать бота в [BotFather](https://t.me/BotFather)
 
+После создания бота добавить через BotFather боту команды
+`/mybots` - BOTNAME - Edit Bot - Edit Commands
+```
+login - Авторизоваться
+stop - Отменить заполнение формы
+book - Забронировать комнату
+quit - Выйти из аккаунта
+info - Справка
+```
+
 И получить API токен от YClients.
 
 Команды для первичной настройки laravel
 ```sh
+git clone https://github.com/Fluttershy1/praktik-work-bot.git
+cd praktik-work-bot
 cp .env.example .env
 vi .env
 composer install
