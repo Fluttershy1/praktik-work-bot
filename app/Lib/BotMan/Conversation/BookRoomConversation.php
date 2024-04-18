@@ -240,7 +240,7 @@ class BookRoomConversation extends Conversation
             (config('yclients.prodMode') !== 1 ? '*ДЕМО РЕЖИМ, фактического бронирования не было*' : '') .
             implode(PHP_EOL, [
                 'Время: ' . $this->datetime,
-                'Длительность: ' . $this->duration . ' минут',
+                'Длительность: ' . $this->duration . ' минут (' . round($this->duration / 60, 2) . ' ч)',
                 'Переговорная: ' . $this->staff_text,
             ]));
 
