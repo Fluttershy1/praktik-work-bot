@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Conversation;
+namespace App\Lib\BotMan\Conversation;
 
+use App\Lib\BotMan\Service\ClearMessageService;
 use App\Services\ChatService;
 use App\Services\YClientsService;
-use BotMan\BotMan\Messages\Conversations\Conversation;
 use BotMan\BotMan\Messages\Incoming\Answer;
 use BotMan\BotMan\Messages\Outgoing\Actions\Button;
 use BotMan\BotMan\Messages\Outgoing\Question;
@@ -22,7 +22,7 @@ class BookRoomConversation extends Conversation
 
     public function askDate()
     {
-        $this->say('Начат процесс бронирования переговорной. Для отмены напишите `stop` в чат');
+        $this->say('Начат процесс бронирования переговорной. Для отмены напишите /stop в чат');
         if (config('yclients.prodMode') !== 1) {
             $this->say('*Чат-бот работает в ДЕМО режиме. Фактически бронирования комнаты не произойдёт!*');
         }
@@ -234,17 +234,22 @@ class BookRoomConversation extends Conversation
             $this->say('Возникла ошибка при бронировании. Попробуйте позже или оформите бронирование через сайт.');
         }
 
+        ClearMessageService::deleteMessages($this->getBot());
+
         $this->say('Бронирование прошло успешно' . PHP_EOL .
+            (config('yclients.prodMode') !== 1 ? '*ДЕМО РЕЖИМ, фактического бронирования не было*' : '') .
             implode(PHP_EOL, [
                 'Время: ' . $this->datetime,
                 'Длительность: ' . $this->duration . ' минут',
                 'Переговорная: ' . $this->staff_text,
             ]));
 
+        ClearMessageService::cleanMessages($this->bot);
     }
 
     public function run()
     {
+        ClearMessageService::cleanMessages($this->bot);
         $this->askDate();
     }
 }

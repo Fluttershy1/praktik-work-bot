@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\BotManService;
+use App\Lib\BotMan\Driver\TelegramDriver;
+use App\Lib\BotMan\Middleware\ClearConservationMiddleware;
+use App\Lib\BotMan\Middleware\ClearSendMessagesMiddleware;
+use App\Lib\BotMan\Service\BotManService;
 use BotMan\BotMan\BotManFactory;
 use BotMan\BotMan\Cache\LaravelCache;
 use BotMan\BotMan\Drivers\DriverManager;
-use BotMan\Drivers\Telegram\TelegramDriver;
 
 class BotManController extends Controller
 {
@@ -23,6 +25,8 @@ class BotManController extends Controller
 
         $botman = BotManFactory::create(config('botman'), new LaravelCache());
 
+        $botman->middleware->captured(new ClearConservationMiddleware());
+
         $botman->hears(['/start'], \Closure::fromCallable([$this->botManService, 'start']));
 
         $botman->hears(['Стоп', '/stop\@?.*', 'stop', 'отмена'], \Closure::fromCallable([$this->botManService, 'stop']))
@@ -31,6 +35,7 @@ class BotManController extends Controller
         $botman->hears(['Авторизация', '/login\@?.*'], \Closure::fromCallable([$this->botManService, 'login']));
 
         $botman->hears(['Выйти', '/quit\@?.*'], \Closure::fromCallable([$this->botManService, 'quit']));
+
         $botman->hears(['Информация', '/info\@?.*'], \Closure::fromCallable([$this->botManService, 'info']));
 
         $botman->hears(['Забронировать', '/book\@?.*'], \Closure::fromCallable([$this->botManService, 'book']));

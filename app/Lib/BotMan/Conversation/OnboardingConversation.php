@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Conversation;
+namespace App\Lib\BotMan\Conversation;
 
+use App\Lib\BotMan\Service\ClearMessageService;
 use App\Services\ChatService;
 use App\Services\YClientsService;
-use BotMan\BotMan\Messages\Conversations\Conversation;
 use BotMan\BotMan\Messages\Incoming\Answer;
 use BotMan\BotMan\Messages\Outgoing\Actions\Button;
 use BotMan\BotMan\Messages\Outgoing\Question;
@@ -22,7 +22,7 @@ class OnboardingConversation extends Conversation
 
     public function askName()
     {
-        $this->say('Начат процесс регистрации. Для отмены напишите `stop` в чат');
+        $this->say('Начат процесс регистрации. Для отмены напишите /stop в чат');
         $this->ask('Добрый день! Напишите своё имя', function (Answer $answer) {
             $this->name = $answer->getText();
             $this->say('Рады вас приветствовать, ' . $this->name);
@@ -118,16 +118,19 @@ class OnboardingConversation extends Conversation
 
         }
 
+        ClearMessageService::deleteMessages($this->getBot());
         $this->say('Готово!' . PHP_EOL .
             'В дальнешем все бронирования в этом чате будут регистрироваться на:' . PHP_EOL .
             $service->chatToText($chat)
         );
 
         $this->say("Что бы забронировать комнату напишите /book");
+        ClearMessageService::cleanMessages($this->bot);
     }
 
     public function run()
     {
+        ClearMessageService::cleanMessages($this->bot);
         $this->askName();
     }
 }

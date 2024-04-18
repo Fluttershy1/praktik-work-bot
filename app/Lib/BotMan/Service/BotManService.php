@@ -1,9 +1,11 @@
 <?php
 
-namespace App\Services;
+namespace App\Lib\BotMan\Service;
 
-use App\Conversation\BookRoomConversation;
-use App\Conversation\OnboardingConversation;
+use App\Lib\BotMan\Conversation\BookRoomConversation;
+use App\Lib\BotMan\Conversation\OnboardingConversation;
+use App\Services\ChatService;
+use App\Services\YClientsService;
 use BotMan\BotMan\BotMan;
 use BotMan\BotMan\Messages\Incoming\Answer;
 use BotMan\BotMan\Messages\Outgoing\Actions\Button;
