@@ -123,7 +123,7 @@ class OnboardingConversation extends Conversation
             $service->chatToText($chat)
         );
 
-        $this->say("Что бы забронировать комнату напишите `Забронировать`");
+        $this->say("Что бы забронировать комнату напишите /book");
     }
 
     public function run()
