@@ -28,8 +28,14 @@ class YClientsService
 
     private function post($path, $data = [])
     {
-        //return Http::withHeaders(['Authorization' => $this->token])->post(self::URL . $path, $data);
-        return Http::withHeaders(['Authorization' => $this->token])->post('https://foe.su/mango/index.php?path=' . $path, $data);
+        $response = Http::withHeaders([
+            'Authorization' => $this->token
+        ])
+            ->post(self::URL . $path, $data);
+
+        Log::info('post response', [$response]);
+
+        return $response;
     }
 
     public function getStaffs()
@@ -118,11 +124,13 @@ class YClientsService
     public function createStaffRecords($staff_id, $datetimeStart, $durationInMin, $chat)
     {
         $data = [
-            'staff_id' => $staff_id,
+            'staff_id' => (int)$staff_id,
             'services' => [
-                'id' => config('yclients.residentServiceId'),
-                'amount' => round($durationInMin / 30), //количество 30минуток
-                'cost' => 0, //стоимость на кол-во 30минуток, для резидентов 0
+                [
+                    'id' => (int)config('yclients.residentServiceId'),
+                    'amount' => (int)round($durationInMin / 30), //количество 30минуток
+                    'cost' => 0, //стоимость на кол-во 30минуток, для резидентов 0
+                ]
             ],
             'client' => [
                 'phone' => $chat->phone,

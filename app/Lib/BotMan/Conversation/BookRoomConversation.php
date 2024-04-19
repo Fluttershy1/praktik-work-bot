@@ -232,6 +232,7 @@ class BookRoomConversation extends Conversation
 
         if (!$result) {
             $this->say('Возникла ошибка при бронировании. Попробуйте позже или оформите бронирование через сайт.');
+            return;
         }
 
         ClearMessageService::deleteMessages($this->getBot());
