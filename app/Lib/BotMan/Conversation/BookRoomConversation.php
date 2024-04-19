@@ -227,9 +227,37 @@ class BookRoomConversation extends Conversation
 
                 $this->staff_id = $answer->getValue();
                 $this->staff_text = $staffs->where('id', $this->staff_id)->first()['name'];
-                $this->save();
+                $this->askConfirm();
             } else {
                 $this->repeat('Выберите пожалуйста вариант из списка');
+            }
+
+        });
+    }
+
+    public function askConfirm()
+    {
+        $text = "Всё правильно выбрано?\n" .
+            (config('yclients.prodMode') !== 1 ? '*ДЕМО РЕЖИМ, фактического бронирования не произойдёт*' : '') .
+            "Дата: " . $this->datetime . "\n" .
+            "Длительность: " . $this->duration . " *(" . round($this->duration / 60, 2) . " ч)*\n" .
+            "Переговорная: _" . $this->staff_text . "_";
+
+        $question = Question::create($text)
+            ->fallback('Произошла ошибка')
+            ->callbackId('ask_confirm')
+            ->addButtons([
+                Button::create('Забронировать')->value('yes'),
+                Button::create('Отменить')->value('no'),
+            ]);
+
+        $this->ask($question, function (Answer $answer) {
+            if ($answer->isInteractiveMessageReply()) {
+                if ($answer->getValue() === 'yes') {
+                    $this->save();
+                } else {
+                    ClearMessageService::deleteMessages($this->getBot());
+                }
             }
 
         });
