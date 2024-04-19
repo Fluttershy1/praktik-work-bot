@@ -115,7 +115,7 @@ class BookRoomConversation extends Conversation
         $maxMinutes = min($minutesDiff, 360);
 
         for ($i = 30; $i <= $maxMinutes; $i += 30) {
-            $buttons[] = Button::create($i . ' минут')->value($i);
+            $buttons[] = Button::create($i . ' минут (' . round(($i / 60), 2) . ' ч)')->value($i);
         }
 
         if (!count($buttons)) {
