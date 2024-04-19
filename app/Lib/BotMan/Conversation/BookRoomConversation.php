@@ -62,44 +62,66 @@ class BookRoomConversation extends Conversation
 
     public function askTime()
     {
-        $this->ask('Напишите время начала бронирования в формате `09:30` или `9`', function (Answer $answer) {
-            $time = $answer->getText();
+        $minTime = (int)config('yclients.workTimeMin');
+        $maxTime = (int)config('yclients.workTimeMax');
 
-            try {
+        $buttonsArray = [];
+        for ($i = $minTime; $i < $maxTime; $i++) {
+            $hour = str_pad((string)$i, 2, '0', STR_PAD_LEFT);
+            $buttonsArray[] = [
+                ['text' => $hour . ':00', 'callback_data' => $hour . ':00'],
+                ['text' => $hour . ':30', 'callback_data' => $hour . ':30'],
+            ];
+        }
+        $buttonsArray[] = [['text' => 'Отмена', 'callback_data' => 'cancel']];
 
-                /** @var Creator $date */
-                $date = null;
+        $this->ask(
+            'Напишите время начала бронирования в формате `09:30` или `9` или выберите из списка',
+            function (Answer $answer) {
 
-                if (preg_match("/^\d+\:\d+$/", $time)) {
-                    $date = Carbon::parse($this->date . ' ' . $time)->setSeconds(0);
-                } elseif (preg_match("/^\d+$/", $time)) {
-                    $date = Carbon::parse($this->date)->startOfDay()->setHours($time);
-                } else {
-                    $this->repeat('Не получилось распознать время, попробуйте ввести время ещё раз');
+                if ($answer->getValue() === 'cancel') {
+                    ClearMessageService::deleteMessages($this->getBot());
                     return;
                 }
 
-                if ($date->hour < config('yclients.workTimeMin') || $date->hour > config('yclients.workTimeMax')) {
-                    $this->repeat('Мы работаем с ' . config('yclients.workTimeMin') . ' до ' . config('yclients.workTimeMax') . ', пожалуйста, выберете другое время');
+                $time = $answer->getText();
+
+                try {
+
+                    /** @var Creator $date */
+                    $date = null;
+
+                    if (preg_match("/^\d+\:\d+$/", $time)) {
+                        $date = Carbon::parse($this->date . ' ' . $time)->setSeconds(0);
+                    } elseif (preg_match("/^\d+$/", $time)) {
+                        $date = Carbon::parse($this->date)->startOfDay()->setHours($time);
+                    } else {
+                        $this->repeat('Не получилось распознать время, попробуйте ввести время ещё раз');
+                        return;
+                    }
+
+                    if ($date->hour < config('yclients.workTimeMin') || $date->hour > config('yclients.workTimeMax')) {
+                        $this->repeat('Мы работаем с ' . config('yclients.workTimeMin') . ' до ' . config('yclients.workTimeMax') . ', пожалуйста, выберете другое время');
+                        return;
+                    }
+
+                    if ($date->minute != 0 && $date->minute != 30) {
+                        $this->repeat('Пожалуйста, выберите время кратное 30 минутам');
+                        return;
+                    }
+
+                    $this->time = $date->format('H:i');
+                    $this->datetime = $date->format('Y-m-d H:i:s');
+
+                } catch (\Throwable $e) {
+                    report($e);
+                    $this->say('Возникла ошибка, попробуйте ещё раз');
                     return;
                 }
 
-                if ($date->minute != 0 && $date->minute != 30) {
-                    $this->repeat('Пожалуйста, выберите время кратное 30 минутам');
-                    return;
-                }
-
-                $this->time = $date->format('H:i');
-                $this->datetime = $date->format('Y-m-d H:i:s');
-
-            } catch (\Throwable $e) {
-                report($e);
-                $this->say('Возникла ошибка, попробуйте ещё раз');
-                return;
-            }
-
-            $this->askDuration();
-        });
+                $this->askDuration();
+            },
+            ['reply_markup_force' => json_encode(['inline_keyboard' => $buttonsArray], true)]);
     }
 
     public function askDuration()
