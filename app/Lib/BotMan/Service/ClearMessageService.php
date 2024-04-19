@@ -5,7 +5,6 @@ namespace App\Lib\BotMan\Service;
 use App\Lib\BotMan\Driver\ClearMessageDriver;
 use BotMan\BotMan\BotMan;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
 
 class ClearMessageService
 {

@@ -26,41 +26,38 @@ class BookRoomConversation extends Conversation
         if (config('yclients.prodMode') !== 1) {
             $this->say('*Чат-бот работает в ДЕМО режиме. Фактически бронирования комнаты не произойдёт!*');
         }
-        $this->ask('Напишите дату когда хотите забронировать в формате `2024-01-15` или `15.01.2024`', function (Answer $answer) {
-            $text = $answer->getText();
-            try {
 
-                try {
-                    $date = Carbon::parse($text);
-                } catch (\Throwable $e) {
-                    $this->repeat('Не получилось распознать дату, попробуйте ввести дату ещё раз');
-                    return;
+        $this->askDateWithKeyboard(
+            'Напишите дату когда хотите забронировать в формате `2024-01-15` или `15.01.2024` или выберите из списка',
+            function (Answer $answer) {
+                if ($value = $this->prepareDateAnswer($answer)) {
+
+                    $date = Carbon::parse($value);
+
+                    try {
+
+                        if ($date->lessThan(Carbon::now())) {
+                            $this->repeat('Нельзя бронировать уже прошедшие даты, попробуйте ввести дату ещё раз');
+                            return;
+                        }
+
+                        if ($date->greaterThan(Carbon::now()->addWeeks(5))) {
+                            $this->repeat('К сожалению нельзя забронировать комнату на дату больше чем через 5 недель, попробуйте ввести дату ещё раз');
+                            return;
+                        }
+
+                    } catch (\Throwable $e) {
+                        report($e);
+                        $this->say('Возникла ошибка, попробуйте ещё раз');
+                        return;
+                    }
+
+
+                    $this->date = $value;
+                    $this->askTime();
                 }
-
-                if (!$date) {
-                    $this->repeat('Не получилось распознать дату, попробуйте ввести дату ещё раз');
-                    return;
-                }
-
-                if ($date->lessThan(Carbon::now())) {
-                    $this->repeat('Нельзя бронировать уже прошедшие даты, попробуйте ввести дату ещё раз');
-                    return;
-                }
-
-                if ($date->greaterThan(Carbon::now()->addWeeks(5))) {
-                    $this->repeat('К сожалению нельзя забронировать комнату на дату больше чем через 5 недель, попробуйте ввести дату ещё раз');
-                    return;
-                }
-
-            } catch (\Throwable $e) {
-                report($e);
-                $this->say('Возникла ошибка, попробуйте ещё раз');
-                return;
             }
-
-            $this->date = $date->format('Y-m-d');
-            $this->askTime();
-        });
+        );
     }
 
     public function askTime()
@@ -126,10 +123,19 @@ class BookRoomConversation extends Conversation
         $question = Question::create('На сколько часов Вы хотите забронировать комнату?')
             ->fallback('Произошла ошибка')
             ->callbackId('ask_duration')
-            ->addButtons($buttons);
+            ->addButtons([
+                ...$buttons,
+                Button::create('Отмена')->value('cancel')
+            ]);
 
         $this->ask($question, function (Answer $answer) {
             if ($answer->isInteractiveMessageReply()) {
+
+                if ($answer->getValue() === 'cancel') {
+                    ClearMessageService::deleteMessages($this->getBot());
+                    return;
+                }
+
                 $this->duration = $answer->getValue();
                 $this->askStaff();
             } else {
@@ -193,7 +199,7 @@ class BookRoomConversation extends Conversation
             if ($answer->isInteractiveMessageReply()) {
 
                 if ($answer->getValue() === 'cancel') {
-                    $this->say('Процесс бронирования отменён');
+                    ClearMessageService::deleteMessages($this->getBot());
                     return;
                 }
 
