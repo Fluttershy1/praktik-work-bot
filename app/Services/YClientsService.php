@@ -197,4 +197,19 @@ class YClientsService
 
         return collect($response->json()['data'] ?? []);
     }
+
+    public function getBooksByDates($chat, $dateStart, $dateEnd)
+    {
+        if (!$chat->client_id) {
+            return collect([]);
+        }
+
+        $response = $this->get('/api/v1/records/' . $this->companyId, [
+            'client_id' => $chat->client_id,
+            'start_date' => $dateStart->format('Y-m-d'),
+            'end_date' => $dateEnd->format('Y-m-d'),
+        ]);
+
+        return collect($response->json()['data'] ?? []);
+    }
 }

@@ -73,7 +73,8 @@ class BotManService
             '- /quit - Выйти из аккаунта' . PHP_EOL .
             '- /stop - Отменить заполнение форма' . PHP_EOL .
             '- /book - Забронировать комнату' . PHP_EOL .
-            '- /list - Показать список бронирований' . PHP_EOL .
+            '- /list - Показать список будущих бронирований' . PHP_EOL .
+            '- /calc - Информация о бронированиях в этом месяце' . PHP_EOL .
             '- /info - Показать эту справку'
         );
     }
@@ -105,8 +106,41 @@ class BotManService
             if ($chat->client_id) {
                 $list = $this->clientsService->getFutureBooks($chat);
 
-                $text = ["Запланировано бронирований: " . (count($list))];
-                $text[] = "_Показываются только бронирования из бота или сайта. полный список уточните у Менеджера._";
+                $text = [];
+                $text[] = "_Показываются только бронирования из бота или сайта. полный список уточните у Менеджера._\n";
+                $text[] = "Запланировано бронирований: " . (count($list));
+
+                foreach ($list ?? [] as $book) {
+                    $text[] = "\n" . Carbon::parse($book['date'])->format('d.m.Y H:i') . ' ' .
+                        '*' . (($book['length'] ?? 0) / 60) . ' мин.*' . ' - ' .
+                        '_' . $book['staff']['name'] . '_';
+                }
+
+                $bot->reply(implode("\n", $text));
+
+            } else {
+                $bot->reply('Мы пока не знаем ваш ID клиента. Он появится после первого бронирования комнаты.');
+            }
+        } else {
+            $bot->reply('Вы не авторизованы. Для авторизации введите команду /login');
+        }
+    }
+
+    public function calc($bot)
+    {
+        $chat = $this->chatService->getChat($bot->getMessage()->getRecipient());
+        if ($chat) {
+            if ($chat->client_id) {
+                $list = $this->clientsService->getBooksByDates($chat, Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth());
+
+                $totalTime = $list->map(function ($book) {
+                    return ($book['length'] ?? 0) + 300;
+                })->sum();
+
+                $text = [];
+                $text[] = "_Показываются только бронирования из бота или сайта. полный список уточните у Менеджера._\n";
+                $text[] = "В текущем месяце бронирований: " . (count($list));
+                $text[] = "Суммарное время " . round(($totalTime / 60 / 60), 2) . ' ч.';
 
                 foreach ($list ?? [] as $book) {
                     $text[] = "\n" . Carbon::parse($book['date'])->format('d.m.Y H:i') . ' ' .
