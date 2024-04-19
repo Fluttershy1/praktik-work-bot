@@ -73,7 +73,8 @@ class BotManService
             '- /quit - Выйти из аккаунта' . PHP_EOL .
             '- /stop - Отменить заполнение форма' . PHP_EOL .
             '- /book - Забронировать комнату' . PHP_EOL .
-            '- /info - Справка'
+            '- /list - Показать список бронирований' . PHP_EOL .
+            '- /info - Показать эту справку'
         );
     }
 
@@ -105,6 +106,8 @@ class BotManService
                 $list = $this->clientsService->getFutureBooks($chat);
 
                 $text = ["Запланировано бронирований: " . (count($list))];
+                $text[] = "_Показываются только бронирования из бота или сайта. полный список уточните у Менеджера._";
+
                 foreach ($list ?? [] as $book) {
                     $text[] = "\n" . Carbon::parse($book['date'])->format('d.m.Y H:i') . ' ' .
                         '*' . (($book['length'] ?? 0) / 60) . ' мин.*' . ' - ' .
