@@ -40,6 +40,8 @@ class BotManController extends Controller
 
         $botman->hears(['Забронировать', '/book\@?.*'], \Closure::fromCallable([$this->botManService, 'book']));
 
+        $botman->hears(['Список бронирований', '/list\@?.*'], \Closure::fromCallable([$this->botManService, 'list']));
+
         $botman->listen();
     }
 }

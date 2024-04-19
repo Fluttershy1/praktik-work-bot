@@ -183,4 +183,18 @@ class YClientsService
 
         return count($blockRecords) > 0;
     }
+
+    public function getFutureBooks($chat)
+    {
+        if (!$chat->client_id) {
+            return collect([]);
+        }
+
+        $response = $this->get('/api/v1/records/' . $this->companyId, [
+            'client_id' => $chat->client_id,
+            'start_date' => Carbon::now()->format('Y-m-d'),
+        ]);
+
+        return collect($response->json()['data'] ?? []);
+    }
 }

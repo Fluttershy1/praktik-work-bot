@@ -10,6 +10,7 @@ use BotMan\BotMan\BotMan;
 use BotMan\BotMan\Messages\Incoming\Answer;
 use BotMan\BotMan\Messages\Outgoing\Actions\Button;
 use BotMan\BotMan\Messages\Outgoing\Question;
+use Carbon\Carbon;
 
 class BotManService
 {
@@ -91,6 +92,30 @@ class BotManService
         $chat = $this->chatService->getChat($bot->getMessage()->getRecipient());
         if ($chat) {
             $bot->startConversation(new BookRoomConversation());
+        } else {
+            $bot->reply('Вы не авторизованы. Для авторизации введите команду /login');
+        }
+    }
+
+    public function list($bot)
+    {
+        $chat = $this->chatService->getChat($bot->getMessage()->getRecipient());
+        if ($chat) {
+            if ($chat->client_id) {
+                $list = $this->clientsService->getFutureBooks($chat);
+
+                $text = ["Запланировано бронирований: " . (count($list))];
+                foreach ($list ?? [] as $book) {
+                    $text[] = "\n" . Carbon::parse($book['date'])->format('d.m.Y H:i') . ' ' .
+                        '*' . (($book['length'] ?? 0) / 60) . ' мин.*' . ' - ' .
+                        '_' . $book['staff']['name'] . '_';
+                }
+
+                $bot->reply(implode("\n", $text));
+
+            } else {
+                $bot->reply('Мы пока не знаем ваш ID клиента. Он появится после первого бронирования комнаты.');
+            }
         } else {
             $bot->reply('Вы не авторизованы. Для авторизации введите команду /login');
         }
