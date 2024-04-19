@@ -230,12 +230,25 @@ class BookRoomConversation extends Conversation
             return;
         }
 
-        if (!$result) {
+        if ($result === false) {
             $this->say('Возникла ошибка при бронировании. Попробуйте позже или оформите бронирование через сайт.');
             return;
         }
 
         ClearMessageService::deleteMessages($this->getBot());
+
+        try {
+            if (!$chat->cliend_id && !empty($result['client']['id'])) {
+
+                $chat->client_id = $result['client']['id'];
+                $chat->save();
+
+                $this->say('Закреплён пользователь №' . $chat->client_id);
+
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         $this->say('Бронирование прошло успешно' . PHP_EOL .
             (config('yclients.prodMode') !== 1 ? '*ДЕМО РЕЖИМ, фактического бронирования не было*' : '') .

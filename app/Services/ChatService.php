@@ -32,6 +32,7 @@ class ChatService
         return 'Имя: ' . $chat->name . PHP_EOL .
             'Телефон: ' . $chat->phone . PHP_EOL .
             'Email: ' . $chat->email . PHP_EOL .
-            'Адрес офиса: ' . $chat->address;
+            'Адрес офиса: ' . $chat->address . PHP_EOL .
+            'ID клиента: ' . ($chat->client_id ?: 'Появится при первом бронировании');
     }
 }

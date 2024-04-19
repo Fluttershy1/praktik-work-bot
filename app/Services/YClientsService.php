@@ -152,14 +152,18 @@ class YClientsService
         if (config('yclients.prodMode') === 1) {
             try {
                 $response = $this->post($path, $data);
-                return $response->ok() || $response->created();
+                if ($response->ok() || $response->created()) {
+                    return $response->json();
+                } else {
+                    return false;
+                }
             } catch (\Throwable $e) {
                 report($e);
                 return false;
             }
         } else {
             // if demo - do nothing
-            return true;
+            return [];
         }
     }
 

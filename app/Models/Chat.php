@@ -17,5 +17,6 @@ class Chat extends Model
         'phone',
         'email',
         'address',
+        'client_id',
     ];
 }
