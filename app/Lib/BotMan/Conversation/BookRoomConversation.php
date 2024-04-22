@@ -32,11 +32,11 @@ class BookRoomConversation extends Conversation
             function (Answer $answer) {
                 if ($value = $this->prepareDateAnswer($answer)) {
 
-                    $date = Carbon::parse($value);
+                    $date = Carbon::parse($value)->startOfDay();
 
                     try {
 
-                        if ($date->lessThan(Carbon::now())) {
+                        if ($date->lessThan(Carbon::now()->startOfDay())) {
                             $this->repeat('Нельзя бронировать уже прошедшие даты, попробуйте ввести дату ещё раз');
                             return;
                         }
