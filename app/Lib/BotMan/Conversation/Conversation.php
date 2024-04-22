@@ -4,6 +4,7 @@ namespace App\Lib\BotMan\Conversation;
 
 use App\Lib\BotMan\Driver\ClearMessageDriver;
 use App\Lib\BotMan\Driver\EditMessageMarkupDriver;
+use App\Lib\BotMan\Driver\SendPhotoDriver;
 use App\Lib\BotMan\Service\ClearMessageService;
 use BotMan\BotMan\Messages\Incoming\Answer;
 use Illuminate\Support\Collection;
@@ -86,6 +87,21 @@ abstract class Conversation extends \BotMan\BotMan\Messages\Conversations\Conver
         }
 
         $this->bot->storeConversation($this, $next, $question, $additionalParameters);
+    }
+
+    public function sendPhoto($message, $fileContent, $mime, $fileName)
+    {
+        if (
+            $this->getBot()->getDriver() instanceof SendPhotoDriver
+        ) {
+            $this->getBot()->getDriver()->sendPhoto(
+                $this->getBot()->getMessage()->getRecipient(),
+                $message,
+                $fileContent,
+                $mime,
+                $fileName
+            );
+        }
     }
 
 

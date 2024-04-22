@@ -3,9 +3,10 @@
 namespace App\Lib\BotMan\Service;
 
 use App\Lib\BotMan\Conversation\BookRoomConversation;
+use App\Lib\BotMan\Conversation\FreeRoomConversation;
 use App\Lib\BotMan\Conversation\OnboardingConversation;
+use App\Lib\YClients\Services\YClientsService;
 use App\Services\ChatService;
-use App\Services\YClientsService;
 use BotMan\BotMan\BotMan;
 use BotMan\BotMan\Messages\Incoming\Answer;
 use BotMan\BotMan\Messages\Outgoing\Actions\Button;
@@ -74,6 +75,7 @@ class BotManService
             '- /stop - Отменить заполнение форма' . PHP_EOL .
             '- /book - Забронировать комнату' . PHP_EOL .
             '- /list - Показать список будущих бронирований' . PHP_EOL .
+            '- /free - Показать занятость переговорных на дату' . PHP_EOL .
             '- /calc - Информация о бронированиях в этом месяце' . PHP_EOL .
             '- /info - Показать эту справку'
         );
@@ -121,6 +123,17 @@ class BotManService
             } else {
                 $bot->reply('Мы пока не знаем ваш ID клиента. Он появится после первого бронирования комнаты.');
             }
+        } else {
+            $bot->reply('Вы не авторизованы. Для авторизации введите команду /login');
+        }
+    }
+
+    public function free($bot)
+    {
+        $chat = $this->chatService->getChat($bot->getMessage()->getRecipient());
+        if ($chat) {
+
+            $bot->startConversation(new FreeRoomConversation());
         } else {
             $bot->reply('Вы не авторизованы. Для авторизации введите команду /login');
         }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Lib\YClients\Services;
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;

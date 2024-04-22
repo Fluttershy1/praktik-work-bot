@@ -3,8 +3,9 @@
 namespace App\Lib\BotMan\Driver;
 
 use BotMan\BotMan\Messages\Incoming\IncomingMessage;
+use Symfony\Component\HttpFoundation\Response;
 
-class TelegramDriver extends \BotMan\Drivers\Telegram\TelegramDriver implements ClearMessageDriver, EditMessageMarkupDriver
+class TelegramDriver extends \BotMan\Drivers\Telegram\TelegramDriver implements ClearMessageDriver, EditMessageMarkupDriver, SendPhotoDriver
 {
     private $unhandledMessageIds = [];
 
@@ -81,5 +82,29 @@ class TelegramDriver extends \BotMan\Drivers\Telegram\TelegramDriver implements 
         }
 
         parent::messagesHandled();
+    }
+
+    public function sendPhoto($chatId, $message, $fileContent, $mime, $fileName)
+    {
+        $arrayQuery = [
+            'chat_id' => $chatId,
+            'caption' => $message,
+            'photo' => new \CURLStringFile($fileContent, $mime, $fileName)
+        ];
+
+        //Штатный HTTPInterface не умеет отправлять файлы по multipart/form-data, отправляем их напрямую
+        $request = curl_init($this->buildApiUrl('sendPhoto'));
+        curl_setopt($request, CURLOPT_POST, 1);
+        curl_setopt($request, CURLOPT_POSTFIELDS, $arrayQuery);
+        curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($request, CURLOPT_HEADER, true);
+        $body = curl_exec($request);
+        $info = curl_getinfo($request);
+
+        curl_close($request);
+
+        $statusCode = $info['http_code'] === 0 ? 500 : $info['http_code'];
+
+        return new Response((string)$body, $statusCode, []);
     }
 }

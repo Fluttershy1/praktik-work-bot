@@ -3,8 +3,8 @@
 namespace App\Lib\BotMan\Conversation;
 
 use App\Lib\BotMan\Service\ClearMessageService;
+use App\Lib\YClients\Services\YClientsService;
 use App\Services\ChatService;
-use App\Services\YClientsService;
 use BotMan\BotMan\Messages\Incoming\Answer;
 use BotMan\BotMan\Messages\Outgoing\Actions\Button;
 use BotMan\BotMan\Messages\Outgoing\Question;
